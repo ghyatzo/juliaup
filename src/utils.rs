@@ -9,6 +9,7 @@ use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 use url::Url;
 
+use crate::global_paths::GlobalPaths;
 /// Resolves the Julia binary path, accounting for .app bundles on macOS
 #[cfg(target_os = "macos")]
 pub fn resolve_julia_binary_path(base_path: &Path) -> Result<PathBuf> {
@@ -374,7 +375,7 @@ pub fn get_juliaprs_base_url() -> Result<Url> {
     Ok(parsed_url)
 }
 
-pub fn get_bin_dir() -> Result<PathBuf> {
+pub fn get_bin_dir(paths: &GlobalPaths) -> Result<PathBuf> {
     let entry_sep = if std::env::consts::OS == "windows" {
         ';'
     } else {
@@ -392,11 +393,7 @@ pub fn get_bin_dir() -> Result<PathBuf> {
             path
         }
         Err(_) => {
-            let mut path = std::env::current_exe()
-                .with_context(|| "Could not determine the path of the running exe.")?
-                .parent()
-                .ok_or_else(|| anyhow!("Could not determine parent."))?
-                .to_path_buf();
+            let mut path = paths.juliaupselfexecfolder.clone();
 
             if let Some(home_dir) = dirs::home_dir() {
                 if !path.starts_with(&home_dir) {

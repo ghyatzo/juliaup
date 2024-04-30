@@ -100,28 +100,12 @@ pub fn run_command_selfupdate(paths: &GlobalPaths) -> Result<()> {
                 )
             })?;
 
-        let my_own_path = std::env::current_exe()
-            .with_context(|| "Could not determine the path of the running exe.")?;
-
-        let my_own_folder = my_own_path
-            .parent()
-            .ok_or_else(|| anyhow!("Could not determine parent."))?;
-
         eprintln!(
             "Found new version {} on channel {}.",
             version, juliaup_channel
         );
 
-        download_extract_sans_parent(new_juliaup_url.as_ref(), my_own_folder, 0)?;
-
-        let new_juliaup = my_own_folder.join(format!("juliaup{}", std::env::consts::EXE_SUFFIX));
-        if let Err(e) = std::process::Command::new(&new_juliaup)
-            .arg("_post-update")
-            .status()
-        {
-            eprintln!("Warning: post-update hook failed: {e}");
-        }
-
+        download_extract_sans_parent(new_juliaup_url.as_ref(), &path.juliupselfexecfolder, 0)?;
         eprintln!("Updated Juliaup to version {}.", version);
     }
 
